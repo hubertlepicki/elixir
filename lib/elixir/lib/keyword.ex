@@ -263,7 +263,21 @@ defmodule Keyword do
     end
   end
 
+  defp get_and_update([key | t], acc, key, fun) when is_atom(key) do
+    case fun.(true) do
+      {get, value} ->
+        {get, :lists.reverse(acc, [key | t])}
+      :pop ->
+        {true, :lists.reverse(acc, t)}
+      other ->
+        raise "the given function must return a two-element tuple or :pop, got: #{inspect(other)}"
+    end
+  end
+
   defp get_and_update([{_, _} = h | t], acc, key, fun),
+    do: get_and_update(t, [h | acc], key, fun)
+
+  defp get_and_update([h | t], acc, key, fun) when is_atom(h),
     do: get_and_update(t, [h | acc], key, fun)
 
   defp get_and_update([], acc, key, fun) do
